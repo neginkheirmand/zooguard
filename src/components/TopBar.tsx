@@ -35,7 +35,7 @@ export default function TopBar() {
 
   return (
     <div>
-      <header className="bg-neutral-700 text-white">
+      <header className="bg-topbar text-white">
         <div className="w-full flex items-center justify-between py-4 px-4">
           <Link
             href="/"
@@ -68,7 +68,7 @@ export default function TopBar() {
       </header>
 
       {state.loggedIn && (
-        <div className="bg-neutral-800 text-white border-b border-neutral-700">
+        <div className="bg-topbar-2 text-white">
           <div className="w-full flex items-center justify-between px-4 py-2 text-sm">
             <div className="opacity-90">
               Connected to <span className="font-semibold">{state.connection}</span>{" "}

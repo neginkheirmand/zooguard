@@ -5,11 +5,14 @@
   --foreground: #171717;
 }
 
+/* 1) Single source of truth for theme tokens */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-app-bg: #f5f5f5;        /* light gray page background */
+  --color-app-text: #111827;      /* dark readable text */
+  --color-topbar: #404040;        /* gray top bar */
+  --color-topbar-2: #262626;      /* darker second bar */
+  --color-card: #ffffff;          /* cards */
+  --color-border: #d4d4d4;        /* borders */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,7 +23,7 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-app-bg);
+  color: var(--color-app-text);
   font-family: Arial, Helvetica, sans-serif;
 }
