@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React from "react";
+import { useAuth } from "@/components/AuthProvider";
 
 function DoorIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -30,7 +31,7 @@ function DoorIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function TopBar() {
-  const [loggedIn, setLoggedIn] = React.useState(false);
+  const { state, logout } = useAuth();
 
   return (
     <div>
@@ -43,32 +44,46 @@ export default function TopBar() {
             ZooGuard
           </Link>
 
-          <button
-            type="button"
-            className="p-2 rounded hover:bg-white/10"
-            aria-label={loggedIn ? "Log out" : "Log in"}
-            title={loggedIn ? "Log out" : "Log in"}
-            onClick={() => setLoggedIn((v) => !v)}
-          >
-            <DoorIcon className="h-6 w-6" />
-          </button>
+          {!state.loggedIn ? (
+            <Link
+              href="/login"
+              className="p-2 rounded hover:bg-white/10"
+              aria-label="Log in"
+              title="Log in"
+            >
+              <DoorIcon className="h-6 w-6" />
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="p-2 rounded hover:bg-white/10"
+              aria-label="Log out"
+              title="Log out"
+              onClick={logout}
+            >
+              <DoorIcon className="h-6 w-6" />
+            </button>
+          )}
         </div>
       </header>
 
-      {loggedIn && (
+      {state.loggedIn && (
         <div className="bg-neutral-800 text-white border-b border-neutral-700">
           <div className="w-full flex items-center justify-between px-4 py-2 text-sm">
-            <div className="opacity-90">Logged in (mock)</div>
+            <div className="opacity-90">
+              Connected to <span className="font-semibold">{state.connection}</span>{" "}
+              as <span className="font-semibold">{state.username}</span>
+            </div>
             <div className="flex items-center gap-3">
-              <Link href="/" className="hover:underline">
+              <Link href="/browse" className="hover:underline">
                 Explorer
               </Link>
               <button
                 type="button"
                 className="px-2 py-1 rounded hover:bg-white/10"
-                onClick={() => setLoggedIn(false)}
+                onClick={logout}
               >
-                Log out
+                Disconnect
               </button>
             </div>
           </div>
