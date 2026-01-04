@@ -129,35 +129,54 @@ export default function TopBar() {
       {/* Top bar */}
       <header className="bg-[var(--color-topbar)] text-white">
         <div className="w-full flex items-center justify-between py-4 px-4">
-          <Link
-            href="/"
-            className="text-2xl font-extrabold tracking-tight hover:opacity-90"
-          >
-            ZooGuard
-          </Link>
-
-          {!state.loggedIn ? (
+            {/* LEFT: title + connection (when logged in) */}
+            <div className="flex items-center gap-3 min-w-0">
             <Link
-              href="/login"
-              className="p-2 rounded hover:bg-white/10"
-              aria-label="Log in"
-              title="Log in"
+                href="/"
+                className="text-2xl font-extrabold tracking-tight hover:opacity-90 shrink-0"
             >
-              <DoorIcon className="h-6 w-6" />
+                ZooGuard
             </Link>
-          ) : (
-            <button
-              type="button"
-              className="p-2 rounded hover:bg-white/10"
-              aria-label="Log out"
-              title="Log out"
-              onClick={logout}
-            >
-              <DoorIcon className="h-6 w-6" />
-            </button>
-          )}
+
+            {state.loggedIn && state.connection && (
+                <span className="text-xs font-semibold px-2 py-1 rounded bg-white/15 border border-white/20">
+                {state.connection}
+                </span>
+            )}
+            </div>
+
+            {/* RIGHT: username (when logged in) + door */}
+            <div className="flex items-center gap-3">
+            {state.loggedIn && state.username && (
+                <span className="text-sm font-medium opacity-95">
+                {state.username}
+                </span>
+            )}
+
+            {!state.loggedIn ? (
+                <Link
+                href="/login"
+                className="p-2 rounded hover:bg-white/10"
+                aria-label="Log in"
+                title="Log in"
+                >
+                <DoorIcon className="h-6 w-6" />
+                </Link>
+            ) : (
+                <button
+                type="button"
+                className="p-2 rounded hover:bg-white/10"
+                aria-label="Log out"
+                title="Log out"
+                onClick={logout}
+                >
+                <DoorIcon className="h-6 w-6" />
+                </button>
+            )}
+            </div>
         </div>
-      </header>
+    </header>
+
 
       {/* Second bar (only when logged in) */}
       {state.loggedIn && (
