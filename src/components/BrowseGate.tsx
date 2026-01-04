@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
-import ZkExplorerSimple from "@/components/ZkExplorerSimple";
+import ZkExplorer from "@/components/ZkExplorer";
 
 export default function BrowseGate() {
   const { state } = useAuth();
@@ -10,9 +10,9 @@ export default function BrowseGate() {
   if (!state.loggedIn) {
     return (
       <div className="p-6">
-        <div className="max-w-lg border rounded p-5 bg-white">
+        <div className="max-w-lg border rounded p-5 bg-[var(--color-card)] border-[var(--color-border)]">
           <h1 className="text-lg font-semibold">Not connected</h1>
-          <p className="text-sm text-neutral-600 mt-1">
+          <p className="text-sm text-neutral-700 mt-1">
             Please connect first to view ZooKeeper data.
           </p>
           <Link
@@ -26,5 +26,5 @@ export default function BrowseGate() {
     );
   }
 
-  return <ZkExplorerSimple />;
+  return <ZkExplorer />;
 }
