@@ -120,7 +120,8 @@ function HomeIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function TopBar() {
   const { state, logout } = useAuth();
-  const { selectedPath } = useZkSelection();
+  const { selectedPath, setSelectedPath } = useZkSelection();
+
   
 
   return (
@@ -209,9 +210,16 @@ export default function TopBar() {
                 <RefreshIcon className="h-5 w-5" />
               </IconButton>
 
-              <IconButton label="Home">
+              <button
+                type="button"
+                aria-label="Home"
+                title="Home"
+                className="p-2 rounded hover:bg-white/10 active:bg-white/15"
+                onClick={() => setSelectedPath("/")}
+              >
                 <HomeIcon className="h-5 w-5" />
-              </IconButton>
+              </button>
+
 
               {/* Path display area */}
               <div className="ml-2 text-sm font-medium opacity-95 truncate">
