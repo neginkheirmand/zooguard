@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { useZkSelection } from "@/components/ZkSelectionProvider";
 
 function IconButton({
   label,
@@ -119,10 +120,8 @@ function HomeIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function TopBar() {
   const { state, logout } = useAuth();
-
-  // For now: placeholder path text.
-  // Later we’ll wire it to the selected znode in the explorer.
-  const currentPath = "/prod/config/app";
+  const { selectedPath } = useZkSelection();
+  
 
   return (
     <div>
@@ -216,7 +215,7 @@ export default function TopBar() {
 
               {/* Path display area */}
               <div className="ml-2 text-sm font-medium opacity-95 truncate">
-                {currentPath}
+                {selectedPath}
               </div>
             </div>
           </div>

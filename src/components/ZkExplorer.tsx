@@ -2,6 +2,7 @@
 
 import React from "react";
 import { zkGetChildren, zkGetNode } from "@/lib/zkMock";
+import { useZkSelection } from "@/components/ZkSelectionProvider";
 
 function parentPath(path: string): string | null {
   if (path === "/") return null;
@@ -12,7 +13,7 @@ function parentPath(path: string): string | null {
 
 export default function ZkExplorer() {
   // Start at rootnode
-  const [selectedPath, setSelectedPath] = React.useState<string>("/");
+const { selectedPath, setSelectedPath } = useZkSelection();
 
   const selected = zkGetNode(selectedPath) ?? zkGetNode("/")!;
   const children = zkGetChildren(selected.path);
