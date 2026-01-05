@@ -12,28 +12,34 @@ function parentPath(path: string): string | null {
 }
 
 export default function ZkExplorer() {
-  // Start at rootnode
-const { selectedPath, setSelectedPath } = useZkSelection();
+  const { selectedPath, setSelectedPath } = useZkSelection();
+  const [query, setQuery] = React.useState("");
 
   const selected = zkGetNode(selectedPath) ?? zkGetNode("/")!;
   const children = zkGetChildren(selected.path);
 
   const p = parentPath(selected.path);
 
+  const filteredChildren = children.filter((c) =>
+    c.name.toLowerCase().includes(query.trim().toLowerCase())
+  );
+
   return (
     <div className="h-[calc(100vh-64px)] grid grid-cols-12">
-      {/* Left: show ONLY direct children of the selected node */}
+      {/* Left: direct children of selected node */}
       <aside className="col-span-12 md:col-span-4 lg:col-span-3 border-r border-[var(--color-border)] bg-[var(--color-card)] p-3 overflow-auto">
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="min-w-0">
-            <div className="text-xs text-neutral-600">Selected</div>
-            <div className="font-semibold text-neutral-900 truncate">{selected.name}</div>
-            <div className="text-xs text-neutral-600 truncate">{selected.path}</div>
-          </div>
+        {/* Search + Up */}
+        <div className="flex items-center gap-2 mb-3">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search children..."
+            className="w-full rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-500 outline-none focus:ring-2 focus:ring-black/10"
+          />
 
           <button
             type="button"
-            className="px-3 py-1.5 rounded border border-[var(--color-border)] text-sm bg-white hover:bg-neutral-50 disabled:opacity-50"
+            className="shrink-0 px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm bg-white hover:bg-neutral-50 disabled:opacity-50"
             disabled={!p}
             onClick={() => p && setSelectedPath(p)}
             title="Go to parent"
@@ -42,17 +48,21 @@ const { selectedPath, setSelectedPath } = useZkSelection();
           </button>
         </div>
 
-        <div className="text-sm font-semibold mb-2 text-neutral-900">Children</div>
-
+        {/* Children list (filtered) */}
         {children.length === 0 ? (
           <div className="text-sm text-neutral-600">(no children)</div>
+        ) : filteredChildren.length === 0 ? (
+          <div className="text-sm text-neutral-600">(no matches)</div>
         ) : (
           <div className="space-y-2">
-            {children.map((c) => (
+            {filteredChildren.map((c) => (
               <button
                 key={c.path}
                 type="button"
-                onClick={() => setSelectedPath(c.path)}
+                onClick={() => {
+                  setSelectedPath(c.path);
+                  setQuery(""); // optional: clear search when you navigate
+                }}
                 className="w-full text-left px-3 py-2 rounded border border-[var(--color-border)] bg-white hover:bg-neutral-50"
               >
                 <div className="font-medium text-neutral-900">{c.name}</div>
@@ -63,7 +73,7 @@ const { selectedPath, setSelectedPath } = useZkSelection();
         )}
       </aside>
 
-      {/* Right: details of the selected node */}
+      {/* Right: details */}
       <main className="col-span-12 md:col-span-8 lg:col-span-9 p-5 overflow-auto">
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5">
           <h2 className="text-lg font-bold text-neutral-900">{selected.name}</h2>
