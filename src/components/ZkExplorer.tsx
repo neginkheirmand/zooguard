@@ -24,7 +24,7 @@ export default function ZkExplorer() {
   const { state } = useAuth();
   const cluster = state.connection ?? "zk205";
 
-  const { selectedPath, setSelectedPath } = useZkSelection();
+  const { selectedPath, setSelectedPath, refreshTick } = useZkSelection();
   const [query, setQuery] = React.useState("");
 
   const [children, setChildren] = React.useState<{ path: string; name: string }[]>([]);
@@ -77,7 +77,7 @@ export default function ZkExplorer() {
     return () => {
       cancelled = true;
     };
-  }, [cluster, selectedPath]);
+  }, [cluster, selectedPath, refreshTick]);
 
   const filteredChildren = children.filter((c) =>
     c.name.toLowerCase().includes(query.trim().toLowerCase())

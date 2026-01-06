@@ -120,7 +120,8 @@ function HomeIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function TopBar() {
   const { state, logout } = useAuth();
-  const { selectedPath, setSelectedPath } = useZkSelection();
+  const { selectedPath, setSelectedPath, refresh } = useZkSelection();
+
 
   
 
@@ -206,9 +207,16 @@ export default function TopBar() {
                 <KebabIcon className="h-5 w-5" />
               </IconButton>
 
-              <IconButton label="Refresh">
+              <button
+                type="button"
+                aria-label="Refresh"
+                title="Refresh"
+                className="p-2 rounded hover:bg-white/10 active:bg-white/15"
+                onClick={refresh}
+              >
                 <RefreshIcon className="h-5 w-5" />
-              </IconButton>
+              </button>
+
 
               <button
                 type="button"
