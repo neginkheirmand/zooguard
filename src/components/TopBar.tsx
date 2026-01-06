@@ -4,7 +4,8 @@ import Link from "next/link";
 import React from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useZkSelection } from "@/components/ZkSelectionProvider";
-import { apiCreateNode } from "@/lib/zkHttp";
+import { apiCreateNode, apiGetNode } from "@/lib/zkHttp";
+
 
 function IconButton({
   label,
@@ -156,6 +157,39 @@ export default function TopBar() {
     }
   }
 
+  const [pathInput, setPathInput] = React.useState(selectedPath);
+  const [pathError, setPathError] = React.useState<string | null>(null);
+
+  // keep input synced with actual selectedPath when user navigates
+  React.useEffect(() => {
+    setPathInput(selectedPath);
+    setPathError(null);
+  }, [selectedPath]);
+
+  async function commitPath(nextRaw: string) {
+    const next = nextRaw.trim();
+
+    if (!next.startsWith("/")) {
+      setPathError("Path must start with '/'");
+      setPathInput(selectedPath);
+      window.setTimeout(() => setPathError(null), 2500);
+      return;
+    }
+
+    try {
+      // validate by attempting to read it (404 => doesn't exist)
+      await apiGetNode(cluster, next);
+
+      setSelectedPath(next);
+      refresh();
+      setPathError(null);
+    } catch {
+      setPathError("This path does not exist");
+      setPathInput(selectedPath);
+      window.setTimeout(() => setPathError(null), 2500);
+    }
+  }
+
   return (
     <div>
       {/* Top bar */}
@@ -265,10 +299,35 @@ export default function TopBar() {
               </button>
 
 
-              {/* Path display area */}
-              <div className="ml-2 text-sm font-medium opacity-95 truncate">
-                {selectedPath}
+              {/* Path display area (editable) */}
+              <div className="ml-2 flex items-center gap-2 min-w-0 flex-1">
+                <input
+                  value={pathInput}
+                  onChange={(e) => setPathInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.currentTarget.blur(); // triggers onBlur commit
+                    }
+                    if (e.key === "Escape") {
+                      setPathInput(selectedPath);
+                      setPathError(null);
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  onBlur={() => commitPath(pathInput)}
+                  className="w-full min-w-0 rounded-md border border-white/20 bg-white/0 px-2 py-1 text-sm text-white placeholder-white/60 outline-none focus:ring-2 focus:ring-white/20"
+                  spellCheck={false}
+                  aria-label="Current znode path"
+                  title="Edit path and press Enter"
+                />
+
+                {pathError && (
+                  <span className="text-xs px-2 py-1 rounded border border-red-200/30 bg-red-900/30 text-red-100 whitespace-nowrap">
+                    {pathError}
+                  </span>
+                )}
               </div>
+
             </div>
           </div>
         </div>
