@@ -4,25 +4,33 @@ import Link from "next/link";
 import React from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useZkSelection } from "@/components/ZkSelectionProvider";
+import { apiCreateNode } from "@/lib/zkHttp";
 
 function IconButton({
   label,
   children,
+  onClick,
+  disabled,
 }: {
   label: string;
   children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       aria-label={label}
       title={label}
-      className="p-2 rounded hover:bg-white/10 active:bg-white/15"
+      onClick={onClick}
+      disabled={disabled}
+      className="p-2 rounded hover:bg-white/10 active:bg-white/15 disabled:opacity-50 disabled:hover:bg-transparent"
     >
       {children}
     </button>
   );
 }
+
 
 /** Icons (simple inline SVGs so you don't need a library) */
 function DoorIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -122,8 +130,31 @@ export default function TopBar() {
   const { state, logout } = useAuth();
   const { selectedPath, setSelectedPath, refresh } = useZkSelection();
 
+  const cluster = state.connection ?? "zk205";
 
-  
+  async function handleCreateZnode() {
+    if (!state.loggedIn) return;
+
+    const name = window.prompt("Enter child znode name:", "newNode");
+    if (!name) return;
+
+    const trimmed = name.trim();
+    if (!trimmed || trimmed.includes("/")) {
+      window.alert("Invalid name. Use a single segment name (no '/').");
+      return;
+    }
+
+    const newPath = selectedPath === "/" ? `/${trimmed}` : `${selectedPath}/${trimmed}`;
+    const data = window.prompt("Initial data (optional):", "") ?? "";
+
+    try {
+      await apiCreateNode(cluster, { path: newPath, data, createParents: true });
+      setSelectedPath(newPath); // go to the new node
+      refresh(); // reload children + node data
+    } catch (e: any) {
+      window.alert(`Create failed: ${e?.message ?? "Unknown error"}`);
+    }
+  }
 
   return (
     <div>
@@ -196,9 +227,10 @@ export default function TopBar() {
                 <SortIcon className="h-5 w-5" />
               </IconButton>
 
-              <IconButton label="Create ZNode">
+              <IconButton label="Create ZNode" onClick={handleCreateZnode}>
                 <PlusIcon className="h-5 w-5" />
               </IconButton>
+
             </div>
 
             {/* Right section: rest of the bar */}

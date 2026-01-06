@@ -34,3 +34,21 @@ export async function apiGetNode(cluster: string, path: string) {
   if (!res.ok) throw new Error(await res.text());
   return (await res.json()) as ZkNodeResponse;
 }
+
+export async function apiCreateNode(
+  cluster: string,
+  input: { path: string; data?: string; createParents?: boolean }
+) {
+  const res = await fetch(`/api/zk/node?cluster=${encodeURIComponent(cluster)}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      path: input.path,
+      data: input.data ?? "",
+      createParents: input.createParents ?? true,
+    }),
+  });
+
+  if (!res.ok) throw new Error(await res.text());
+  return (await res.json()) as { cluster: string; path: string; created: boolean };
+}
