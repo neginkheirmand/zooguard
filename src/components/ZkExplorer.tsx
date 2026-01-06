@@ -4,21 +4,80 @@ import React from "react";
 import { zkGetChildren, zkGetNode } from "@/lib/zkMock";
 import { useZkSelection } from "@/components/ZkSelectionProvider";
 
+import { useAuth } from "@/components/AuthProvider";
+import { apiGetChildren, apiGetNode } from "@/lib/zkHttp";
+
 function parentPath(path: string): string | null {
   if (path === "/") return null;
   const parts = path.split("/").filter(Boolean);
   if (parts.length <= 1) return "/";
   return "/" + parts.slice(0, -1).join("/");
 }
+function nameFromPath(path: string) {
+  if (path === "/") return "rootnode";
+  const parts = path.split("/").filter(Boolean);
+  return parts[parts.length - 1] ?? "rootnode";
+}
+
 
 export default function ZkExplorer() {
+  const { state } = useAuth();
+  const cluster = state.connection ?? "zk205";
+
   const { selectedPath, setSelectedPath } = useZkSelection();
   const [query, setQuery] = React.useState("");
 
-  const selected = zkGetNode(selectedPath) ?? zkGetNode("/")!;
-  const children = zkGetChildren(selected.path);
+  const [children, setChildren] = React.useState<{ path: string; name: string }[]>([]);
+  const [data, setData] = React.useState<string>("");
+  const [stat, setStat] = React.useState<{
+    version: number;
+    dataLength: number;
+    numChildren: number;
+    ctime: number;
+    mtime: number;
+  } | null>(null);
 
-  const p = parentPath(selected.path);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const p = parentPath(selectedPath);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const [kidsRes, nodeRes] = await Promise.all([
+          apiGetChildren(cluster, selectedPath),
+          apiGetNode(cluster, selectedPath),
+        ]);
+
+        if (cancelled) return;
+
+        setChildren(
+          kidsRes.children.map((path) => ({ path, name: nameFromPath(path) }))
+        );
+        setData(nodeRes.data ?? "");
+        setStat(nodeRes.stat ?? null);
+      } catch (e: any) {
+        if (cancelled) return;
+        setError(typeof e?.message === "string" ? e.message : "Failed to load");
+        setChildren([]);
+        setData("");
+        setStat(null);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [cluster, selectedPath]);
 
   const filteredChildren = children.filter((c) =>
     c.name.toLowerCase().includes(query.trim().toLowerCase())
@@ -26,9 +85,7 @@ export default function ZkExplorer() {
 
   return (
     <div className="h-[calc(100vh-64px)] grid grid-cols-12">
-      {/* Left: direct children of selected node */}
       <aside className="col-span-12 md:col-span-4 lg:col-span-3 border-r border-[var(--color-border)] bg-[var(--color-card)] p-3 overflow-auto">
-        {/* Search + Up */}
         <div className="flex items-center gap-2 mb-3">
           <input
             value={query}
@@ -48,10 +105,16 @@ export default function ZkExplorer() {
           </button>
         </div>
 
-        {/* Children list (filtered) */}
-        {children.length === 0 ? (
+        {loading && <div className="text-sm text-neutral-600">Loading...</div>}
+        {error && (
+          <div className="text-sm text-red-700 border border-red-200 bg-red-50 rounded p-2 mb-2">
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && children.length === 0 ? (
           <div className="text-sm text-neutral-600">(no children)</div>
-        ) : filteredChildren.length === 0 ? (
+        ) : !loading && !error && filteredChildren.length === 0 ? (
           <div className="text-sm text-neutral-600">(no matches)</div>
         ) : (
           <div className="space-y-2">
@@ -61,7 +124,7 @@ export default function ZkExplorer() {
                 type="button"
                 onClick={() => {
                   setSelectedPath(c.path);
-                  setQuery(""); // optional: clear search when you navigate
+                  setQuery("");
                 }}
                 className="w-full text-left px-3 py-2 rounded border border-[var(--color-border)] bg-white hover:bg-neutral-50"
               >
@@ -73,21 +136,26 @@ export default function ZkExplorer() {
         )}
       </aside>
 
-      {/* Right: details */}
       <main className="col-span-12 md:col-span-8 lg:col-span-9 p-5 overflow-auto">
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5">
-          <h2 className="text-lg font-bold text-neutral-900">{selected.name}</h2>
-          <div className="text-sm text-neutral-700">{selected.path}</div>
+          <h2 className="text-lg font-bold text-neutral-900">{nameFromPath(selectedPath)}</h2>
+          <div className="text-sm text-neutral-700">{selectedPath}</div>
 
           <div className="text-xs text-neutral-600 mt-1">
-            v{selected.stat.version} • {selected.stat.numChildren} children • modified{" "}
-            {new Date(selected.stat.mtime).toLocaleString()}
+            {stat ? (
+              <>
+                v{stat.version} • {stat.numChildren} children • modified{" "}
+                {new Date(stat.mtime).toLocaleString()}
+              </>
+            ) : (
+              "—"
+            )}
           </div>
 
           <div className="mt-5">
             <div className="text-sm font-semibold text-neutral-900 mb-2">Data</div>
             <pre className="rounded-lg border border-[var(--color-border)] bg-neutral-50 p-4 text-sm whitespace-pre-wrap text-neutral-900">
-              {selected.data || "(empty)"}
+              {data || "(empty)"}
             </pre>
           </div>
         </div>
