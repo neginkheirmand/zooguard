@@ -128,7 +128,7 @@ function HomeIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function TopBar() {
   const { state, logout } = useAuth();
-  const { selectedPath, setSelectedPath, refresh } = useZkSelection();
+  const { selectedPath, setSelectedPath, refresh, sortMode, toggleSort } = useZkSelection();
 
   const cluster = state.connection ?? "zk205";
 
@@ -223,9 +223,13 @@ export default function TopBar() {
                 <ToggleIcon className="h-5 w-5" />
               </IconButton>
 
-              <IconButton label="Sort">
+              <IconButton
+                label={sortMode === "az" ? "Sort A→Z (click for Z→A)" : "Sort Z→A (click for A→Z)"}
+                onClick={toggleSort}
+              >
                 <SortIcon className="h-5 w-5" />
               </IconButton>
+
 
               <IconButton label="Create ZNode" onClick={handleCreateZnode}>
                 <PlusIcon className="h-5 w-5" />

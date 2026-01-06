@@ -24,7 +24,7 @@ export default function ZkExplorer() {
   const { state } = useAuth();
   const cluster = state.connection ?? "zk205";
 
-  const { selectedPath, setSelectedPath, refreshTick } = useZkSelection();
+  const { selectedPath, setSelectedPath, refreshTick, sortMode } = useZkSelection();
   const [query, setQuery] = React.useState("");
 
   const [children, setChildren] = React.useState<{ path: string; name: string }[]>([]);
@@ -79,9 +79,21 @@ export default function ZkExplorer() {
     };
   }, [cluster, selectedPath, refreshTick]);
 
-  const filteredChildren = children.filter((c) =>
-    c.name.toLowerCase().includes(query.trim().toLowerCase())
-  );
+  const filteredChildren = React.useMemo(() => {
+    const q = query.trim().toLowerCase();
+
+    const filtered = children.filter((c) =>
+      c.name.toLowerCase().includes(q)
+    );
+
+    // Make a copy before sorting (don't mutate React state!)
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+
+    if (sortMode === "za") filtered.reverse();
+
+    return filtered;
+  }, [children, query, sortMode]);
+
 
   return (
     <div className="h-[calc(100vh-64px)] grid grid-cols-12">
