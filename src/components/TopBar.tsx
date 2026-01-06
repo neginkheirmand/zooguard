@@ -190,6 +190,27 @@ export default function TopBar() {
     }
   }
 
+  const [moreOpen, setMoreOpen] = React.useState(false);
+  const moreRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!moreRef.current) return;
+      if (!moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    }
+    function onEsc(e: KeyboardEvent) {
+      if (e.key === "Escape") setMoreOpen(false);
+    }
+
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, []);
+
+
   return (
     <div>
       {/* Top bar */}
@@ -273,9 +294,48 @@ export default function TopBar() {
 
             {/* Right section: rest of the bar */}
             <div className="col-span-12 md:col-span-8 lg:col-span-9 flex items-center gap-1 px-2 py-2">
-              <IconButton label="More">
-                <KebabIcon className="h-5 w-5" />
-              </IconButton>
+              <div className="relative" ref={moreRef}>
+                <IconButton
+                  label="More"
+                  onClick={() => setMoreOpen((v) => !v)}
+                >
+                  <KebabIcon className="h-5 w-5" />
+                </IconButton>
+
+                {moreOpen && (
+                  <div className="absolute left-0 mt-2 w-44 rounded-lg border border-white/15 bg-[var(--color-topbar)] shadow-lg overflow-hidden z-50">
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-white/10"
+                      onClick={() => setMoreOpen(false)}
+                    >
+                      Delete
+                    </button>
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-white/10"
+                      onClick={() => setMoreOpen(false)}
+                    >
+                      Export
+                    </button>
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-white/10"
+                      onClick={() => setMoreOpen(false)}
+                    >
+                    Duplicate
+                    </button>
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-white/10"
+                      onClick={() => setMoreOpen(false)}
+                    >
+                      Move
+                    </button>
+                  </div>
+                )}
+              </div>
+
 
               <button
                 type="button"
